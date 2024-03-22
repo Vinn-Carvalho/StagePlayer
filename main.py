@@ -241,37 +241,20 @@ class Main(ctk.CTk):
         self.grid_columnconfigure(1, weight=1)
         self.grid_columnconfigure(2, weight=0)
         self.data = Data.load()
+        mixer.init()
         self.protocol("WM_DELETE_WINDOW", self.destroy)
         self.new_music = None
         self.new_playlist = None
         self.current_playlist = None
         self.current_music_index = 0
-
+        self.current_music_playing = None
         self.musics = self.data.musics
         self.playlists = self.data.playlists
-
-        # self.musics = [
-        #     Music("Song 0", "Artist 0", "red.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     Music("Song 1", "Artist 1", "red.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     Music("Song 2", "Artist 2", "unknown_cover.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     Music("Song 3", "Artist 3", "unknown_cover.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     Music("Song 4", "Artist 4", "unknown_cover.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     Music("Song 5", "Artist 5", "unknown_cover.jpg", "RED HOT CHILI PEPPERS - Can't Stop.mp3"),
-        #     ]
-        # self.playlists = [
-        #     Playlist("Playlist 1", "unknown_cover.jpg", [self.musics[0], self.musics[1], self.musics[3], self.musics[2]]),
-        #     Playlist("Playlist 2", "unknown_cover.jpg", [self.musics[2], self.musics[3]]),
-        #     Playlist("Playlist 3", "unknown_cover.jpg", [self.musics[5], self.musics[4], self.musics[3], self.musics[2]]),
-        #     Playlist("Playlist 4", "unknown_cover.jpg", [self.musics[2], self.musics[1], self.musics[3]]),
-        #     Playlist("Playlist 5", "unknown_cover.jpg", [self.musics[4], self.musics[3], self.musics[2]]),]
-
-        mixer.init()
-
         self.create_navigation_frame()
         self.create_main_frame()
         self.create_playlists_frame()
         self.create_musics_frame()
-        self.create_config_frame()
+        #self.create_config_frame()
         self.create_player_frame()
         self.select_frame("main_frame")
 
@@ -327,14 +310,14 @@ class Main(ctk.CTk):
         self.musics_frame_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Músicas", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=lambda: self.select_frame("musics_frame"), font=ctk.CTkFont(family='Kollektif', size=18, weight="bold"))
         self.musics_frame_button.grid(row=3, column=0, sticky="ew")
 
-        self.config_frame_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Configurações", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=lambda: self.select_frame("config_frame"), font=ctk.CTkFont(family='Kollektif', size=18, weight="bold"))
-        self.config_frame_button.grid(row=4, column=0, sticky="ew")
+        # self.config_frame_button = ctk.CTkButton(self.navigation_frame, corner_radius=0, height=40, border_spacing=10, text="Configurações", fg_color="transparent", text_color=("gray10", "gray90"), hover_color=("gray70", "gray30"), anchor="w", command=lambda: self.select_frame("config_frame"), font=ctk.CTkFont(family='Kollektif', size=18, weight="bold"))
+        # self.config_frame_button.grid(row=4, column=0, sticky="ew")
 
     def select_frame(self, name):
         self.main_frame_button.configure(fg_color=("gray75", "gray25") if name == "main_frame" else "transparent")
         self.playlists_frame_button.configure(fg_color=("gray75", "gray25") if name == "playlists_frame" else "transparent")
         self.musics_frame_button.configure(fg_color=("gray75", "gray25") if name == "musics_frame" else "transparent")
-        self.config_frame_button.configure(fg_color=("gray75", "gray25") if name == "config_frame" else "transparent")
+        #self.config_frame_button.configure(fg_color=("gray75", "gray25") if name == "config_frame" else "transparent")
         if name == "main_frame":
             self.main_frame.grid(row=0, column=1, columnspan=2, sticky="nsew", rowspan=5)
         else:
@@ -347,10 +330,11 @@ class Main(ctk.CTk):
             self.musics_frame.grid(row=0, column=1, columnspan=2, sticky="nsew", rowspan=5)
         else:
             self.musics_frame.grid_forget()
-        if name == "config_frame":
-            self.config_frame.grid(row=0, column=1, columnspan=2, sticky="nsew", rowspan=5)
-        else:
-            self.config_frame.grid_forget()
+        # if name == "config_frame":
+        #     self.config_frame.grid(row=0, column=1, columnspan=2, sticky="nsew", rowspan=5)
+        # else:
+        #     self.config_frame.grid_forget()
+
 
 #----------------MainFrame-----------------
     def create_main_frame(self):
@@ -505,6 +489,7 @@ class Main(ctk.CTk):
         self.data.save()
         self.update_playlists_frame()
 
+
 # ------------MusicsFrames----------------
     def create_musics_frame(self):
         self.musics_frame = ctk.CTkScrollableFrame(self, corner_radius=0, fg_color="gray30")
@@ -579,6 +564,7 @@ class Main(ctk.CTk):
         self.data.save()
         self.update_musics_frames()
 
+
     #----------------Player Functions-------------
     def play_music_from_playlist(self, playlist_name, music_index=0):
         for playlist in self.playlists:
@@ -588,115 +574,47 @@ class Main(ctk.CTk):
                 self.play_music(self.current_playlist.musics[self.current_music_index])
 
     def play_music(self, music):
+        self.current_music_playing = music
         current_music = music.file
         mixer.music.load(current_music)
         mixer.music.play()
         current_music_length = round(mixer.Sound(current_music).get_length())
 
-
         self.player_music_name_label.configure(text=music.name)
         self.player_status_slider.configure(number_of_steps=current_music_length, to=current_music_length)
-        self.update_slider(1, current_music_length)
-        self.update_remaining_time_label(current_music_length)
-        self.update_running_time_label()
-
-    def update_slider(self, current_position, music_length):
-        if current_position < music_length:
-            current_position += 1
-            self.player_status_slider.set(current_position)
-            self.after(1000, self.update_slider, current_position, music_length)
-        else:
-            self.player_status_slider.set(0)
-
-    def update_running_time_label(self):
-        current_time = mixer.music.get_pos() / 1000
-        minutes, seconds = divmod(int(current_time), 60)
-        self.player_music_time_running_label.configure(text="{:02d}:{:02d}".format(minutes, seconds))
-        #print(mixer.music.get_pos())
-        self.after(1000, self.update_running_time_label)
-
-    def update_remaining_time_label(self, total_time):
-        minutes, seconds = divmod(int(total_time), 60)
-        self.player_music_time_left_label.configure(text="{:02d}:{:02d}".format(minutes, seconds))
-        if total_time > 0:
-            total_time -= 1
-            self.after(1000, self.update_remaining_time_label, total_time)
-
-    def set_music_position(self, slider_value):
-        current_time = (mixer.music.get_pos())
-        slider_value = round(slider_value)
-        mixer.music.set_pos(slider_value * 1000)
+        self.update_slider(0)
+        self.update_time_left_label(current_music_length)
+        self.update_time_running_label()
 
     def play_pause_music(self):
         if mixer.music.get_busy():
             mixer.music.pause()
-            self.pause_left_time_label()
-            self.pause_running_time_label()
-            self.pause_slider()
         else:
             mixer.music.unpause()
-            self.unpause_slider()
-
-    def reset_running_time_label(self):
-        self.player_music_time_running_label.configure(text="00:00")
-
-    def pause_left_time_label(self):
-        if mixer.music.get_busy():
-            current_time_label = self.player_music_time_left_label.cget("text")
-            print(current_time_label)
-            self.player_music_time_left_label.configure(text=current_time_label)
-
-    def pause_running_time_label(self):
-        current_time_label = self.player_music_time_running_label.cget("text")
-        print(current_time_label)
-        self.player_music_time_running_label.configure(text=current_time_label)
-
-    def reset_slider(self):
-        self.player_status_slider.set(0)
-
-    def pause_slider(self):
-        current_step = self.player_status_slider.get()
-        self.player_status_slider.set(current_step)
-
-    def unpause_slider(self):
-        slider_current_position = self.player_status_slider.get()
-        current_music_length = 260000
-        self.update_slider(slider_current_position, current_music_length)
 
     def next_music(self):
+        self.current_music_playing = None
         if self.current_playlist:
             self.current_music_index += 1
             if self.current_music_index >= len(self.current_playlist.musics):
                 self.current_music_index = 0
-            self.reset_running_time_label()
-
             next_music = self.current_playlist.musics[self.current_music_index]
             next_music_length = round(mixer.Sound(next_music.file).get_length())
-
-            self.update_remaining_time_label(next_music_length)
-
-            self.pause_slider()
             self.play_music(next_music)
 
     def previous_music(self):
+        self.current_music_playing = None
         if self.current_playlist:
             if mixer.music.get_pos() > 3000:
-                self.reset_running_time_label()
                 current_music = self.current_playlist.musics[self.current_music_index]
                 current_music_length = round(mixer.Sound(current_music.file).get_length())
-                self.update_remaining_time_label(current_music_length)
-                self.pause_slider()
                 self.play_music(current_music)
             else:
                 self.current_music_index -= 1
                 if self.current_music_index < 0:
                     self.current_music_index = len(self.current_playlist.musics) - 1
-
                 previous_music = self.current_playlist.musics[self.current_music_index]
                 previous_music_length = round(mixer.Sound(previous_music.file).get_length())
-                self.pause_slider()
-                self.reset_running_time_label()
-                self.update_remaining_time_label(previous_music_length)
                 self.play_music(previous_music)
 
     def select_playlist_and_play_music(self, playlist_name):
@@ -708,12 +626,40 @@ class Main(ctk.CTk):
         if self.current_playlist:
             self.play_music_from_playlist(self.current_playlist.name)
 
-#----------------ConfigFrame----------------
-    def create_config_frame(self):
-        self.config_frame = ctk.CTkScrollableFrame(self, corner_radius=0, fg_color="blue")
-        self.config_frame.grid_columnconfigure(0, weight=1)
-        self.config_frame.grid_rowconfigure(0, weight=1)
+    #---------------WidgetsFunctions-----------
+    def update_slider(self, current_position):
+        current_time = mixer.music.get_pos() / 1000
+        if current_position < current_time:
+            current_position += 1
+            self.player_status_slider.set(current_position)
+        self.after(1000, self.update_slider, current_position)
 
+    def set_music_position(self, slider_value):
+        current_time = (mixer.music.get_pos())
+        slider_value = round(slider_value)
+        mixer.music.set_pos(slider_value * 1000)
+
+    def update_time_running_label(self):
+        current_time = mixer.music.get_pos() / 1000
+        minutes, seconds = divmod(int(current_time), 60)
+        self.player_music_time_running_label.configure(text="{:02d}:{:02d}".format(minutes, seconds))
+        self.after(1000, self.update_time_running_label)
+
+    def update_time_left_label(self, total_time):
+        current_time = round(mixer.music.get_pos() / 1000)
+        remaining_time = total_time - current_time
+        minutes, seconds = divmod(int(remaining_time), 60)
+        self.player_music_time_left_label.configure(text="{:02d}:{:02d}".format(minutes, seconds))
+        if remaining_time > 0:
+            self.after(1000, self.update_time_left_label, total_time)
+        else:
+            self.player_music_time_left_label.configure(text="00:00")
+
+#----------------ConfigFrame----------------
+    # def create_config_frame(self):
+    #     self.config_frame = ctk.CTkScrollableFrame(self, corner_radius=0, fg_color="blue")
+    #     self.config_frame.grid_columnconfigure(0, weight=1)
+    #     self.config_frame.grid_rowconfigure(0, weight=1)
 if __name__ == '__main__':
     app = Main()
     app.mainloop()
