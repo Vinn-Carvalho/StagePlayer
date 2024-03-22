@@ -637,7 +637,9 @@ class Main(ctk.CTk):
     def set_music_position(self, slider_value):
         current_time = (mixer.music.get_pos())
         slider_value = round(slider_value)
-        mixer.music.set_pos(slider_value * 1000)
+        self.update_slider(slider_value)
+        mixer.music.rewind()
+        mixer.music.set_pos(slider_value)
 
     def update_time_running_label(self):
         current_time = mixer.music.get_pos() / 1000
